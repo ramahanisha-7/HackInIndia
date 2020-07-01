@@ -4,36 +4,40 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background"
+    android:background="@drawable/bg2"
     tools:context=".Help">
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp">
+        android:layout_height="0dp"
+        android:background="@drawable/bg2"
+        android:padding="25dp">
 
         <TextView
             android:id="@+id/textone"
-            android:layout_width="345dp"
+            android:layout_width="match_parent"
             android:layout_height="113dp"
             android:layout_alignParentTop="true"
-            android:layout_marginTop="90dp"
-            android:fontFamily="@font/centurygothicregular"
-            android:text="            ABOUT"
-            android:textColor="@android:color/white"
-            android:textSize="40sp" />
+            android:layout_marginTop="30dp"
+            android:fontFamily="sans-serif"
+            android:text="ABOUT"
+            android:gravity="center"
+            android:layout_centerHorizontal="true"
+            android:textColor="@android:color/holo_blue_bright"
+            android:textSize="50sp" />
 
         <TextView
-            android:layout_width="398dp"
+            android:layout_width="match_parent"
             android:layout_height="395dp"
-            android:layout_alignBottom="@id/textone"
+            android:layout_below="@id/textone"
             android:layout_alignParentBottom="true"
-
-            android:layout_centerInParent="true"
             android:layout_centerVertical="true"
-            android:layout_marginBottom="65dp"
-            android:fontFamily="@font/centurygothicregular"
-            android:text="Crime Curber is an application which can be used to report the crimes that happen in the city. It gives the platform of transferring pictures or recordings of wrongdoing scenes to guarantee that police may make a move right away. It additionally informs the user of the nearest police station along with emergency numbers. "
+            android:layout_marginTop="-25dp"
+            android:layout_marginBottom="60dp"
+            android:fontFamily="sans-serif"
+            android:gravity="center"
+            android:text="Crime Curber can be used to report the crimes that happen in the city. It gives the platform of transferring pictures or recordings of wrongdoing scenes to guarantee that police may make a move right away. You can navigate to the nearest police station or hospital and call them and other emergency contacts if required."
             android:textColor="@android:color/white"
-            android:textSize="23sp" />
+            android:textSize="25sp" />
     </RelativeLayout>
 
 

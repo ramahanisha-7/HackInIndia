@@ -101,7 +101,7 @@ public class Emergency extends AppCompatActivity implements LocationListener
                 FetchContacts();
                 for (Contacts contacts : FetchContacts()) {
 
-                    String message = "Help me, I am sending You my location \n" + GlobalMessage;
+                    String message = "Help me, I am sending you my location \n" + GlobalMessage;
                     String phoneNo = contacts.getPhoneNumber();
 
                     if (checkPermission()) {
@@ -230,8 +230,10 @@ public class Emergency extends AppCompatActivity implements LocationListener
         {
             String myLatitude = String.valueOf(location.getLatitude());
             String myLongitude = String.valueOf(location.getLongitude());
+            
+            GlobalMessage = " https://www.google.com/maps?q="+ myLatitude + "," + myLongitude;
 
-            GlobalMessage = "Latitude = " + myLatitude + " Longitude = " + myLongitude;
+
         }
 
         catch (Exception e)
