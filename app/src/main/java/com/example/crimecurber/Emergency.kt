@@ -1,305 +1,198 @@
-package com.example.crimecurber;
+package com.example.crimecurber
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
+import android.os.Bundle
+import android.telephony.SmsManager
+import android.util.Log
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.example.crimecurber.Emergency
+import com.example.crimecurber.FetchContacts
 
-import android.Manifest;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.net.Uri;
-import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.telephony.SmsManager;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import java.util.List;
-
-public class Emergency extends AppCompatActivity implements LocationListener
-{
-    DbHandler db = new DbHandler( Emergency.this);
-
-    String copy_phone = "";
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-    int i = 1;
-    public static final int MULTIPLE_PERMISSIONS = 10; // code you want.
-
-    String[] permissions= new String[]{
+class Emergency : AppCompatActivity(), LocationListener {
+    var db = DbHandler(this@Emergency)
+    var copy_phone = ""
+    var i = 1
+    var permissions = arrayOf(
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.SEND_SMS,
             Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION};
-
-    final int SEND_SMS_PERMISSION_REQUEST_CODE = 111;
-    private int TRACK_LOCATION_REQUEST_CODE = 1;
-    private Button sos_btn,fetchBtn;
-
-    protected LocationManager locationManager;
-
-    public String GlobalMessage;
-
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_emergency);
-
-        fetchBtn = (Button) findViewById ( R.id.fetchBtn );
-        fetchBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(FetchContacts()!=null) {
-
-                    FetchContacts fetchContacts = new FetchContacts();
-                    fetchContacts.setDb(db);
-                    DisplayContacts();
-                }
-                else
-                    Toast.makeText(getApplicationContext(), "No contacts added", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        sos_btn = findViewById(R.id.sos_btn);
-
-        if(checkLocation())
-            sos_btn.setEnabled(true);
-        else
-            requestLocPermission();
-
-        if(checkPermission())
-        {
-            sos_btn.setEnabled(true);
+            Manifest.permission.ACCESS_FINE_LOCATION)
+    val SEND_SMS_PERMISSION_REQUEST_CODE = 111
+    private val TRACK_LOCATION_REQUEST_CODE = 1
+    private var sos_btn: Button? = null
+    private var fetchBtn: Button? = null
+    protected var locationManager: LocationManager? = null
+    var GlobalMessage: String? = null
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_emergency)
+        fetchBtn = findViewById<View>(R.id.fetchBtn) as Button
+        fetchBtn!!.setOnClickListener {
+            if (FetchContacts() != null) {
+                val fetchContacts: FetchContacts? = FetchContacts()
+                fetchContacts!!.setDb(db)
+                DisplayContacts()
+            } else Toast.makeText(applicationContext, "No contacts added", Toast.LENGTH_SHORT).show()
         }
-        else
-        {
-            requestSmsPermission();
+        sos_btn = findViewById(R.id.sos_btn)
+        if (checkLocation()) sos_btn.setEnabled(true) else requestLocPermission()
+        if (checkPermission()) {
+            sos_btn.setEnabled(true)
+        } else {
+            requestSmsPermission()
         }
-
-
-
-        sos_btn.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-
-                FetchContacts();
-                for (Contacts contacts : FetchContacts()) {
-
-                    String message = "Help me, I am sending you my location \n" + GlobalMessage;
-                    String phoneNo = contacts.getPhoneNumber();
-
-                    if (checkPermission()) {
-                        SmsManager smsManager = SmsManager.getDefault();
-                        smsManager.sendTextMessage(phoneNo, null, message, null, null);
-                    } else {
-                        Toast.makeText( Emergency.this, "Permission denied", Toast.LENGTH_SHORT).show();
-                    }
+        sos_btn.setOnClickListener(View.OnClickListener {
+            FetchContacts()
+            for (contacts in FetchContacts()!!) {
+                val message = "Help me, I am sending you my location \n$GlobalMessage"
+                val phoneNo = contacts.getPhoneNumber()
+                if (checkPermission()) {
+                    val smsManager = SmsManager.getDefault()
+                    smsManager.sendTextMessage(phoneNo, null, message, null, null)
+                } else {
+                    Toast.makeText(this@Emergency, "Permission denied", Toast.LENGTH_SHORT).show()
                 }
             }
-        });
-
-        ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, PackageManager.PERMISSION_GRANTED);
-        ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
-
-        if ((ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION))
-                 == PackageManager.PERMISSION_GRANTED){
-
-            locationManager = (LocationManager) getSystemService ( Context.LOCATION_SERVICE );
+        })
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), PackageManager.PERMISSION_GRANTED)
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.INTERNET), PackageManager.PERMISSION_GRANTED)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
             if (locationManager != null) {
-                locationManager.requestLocationUpdates ( LocationManager.GPS_PROVIDER, 0, 0, this );
+                locationManager!!.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, this)
             }
             if (locationManager != null) {
-                locationManager.requestLocationUpdates ( LocationManager.NETWORK_PROVIDER, 0, 0, this );
+                locationManager!!.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0f, this)
             }
-        }
-        else {
+        } else {
             // Permission to access the location is missing. Show rationale and request permission
             PermissionUtils.requestPermission(this, LOCATION_PERMISSION_REQUEST_CODE,
-                    Manifest.permission.ACCESS_FINE_LOCATION, true);
+                    Manifest.permission.ACCESS_FINE_LOCATION, true)
         }
     }
 
-    public void AddContacts(View view)
-    {
-        EditText ContactName = findViewById(R.id.name);
-        String name = ContactName.getText().toString();
-
-        EditText phone_number = findViewById(R.id.phone_number);
-        String phoneNo = phone_number.getText().toString();
-
-        if(!copy_phone.equals(phoneNo))
-        {
+    fun AddContacts(view: View?) {
+        val ContactName = findViewById<EditText>(R.id.name)
+        val name = ContactName.text.toString()
+        val phone_number = findViewById<EditText>(R.id.phone_number)
+        val phoneNo = phone_number.text.toString()
+        if (copy_phone != phoneNo) {
             if (i <= 5) {
-                Contacts con = new Contacts();
-
-                con.setName(name);
-                con.setPhoneNumber(phoneNo);
-                db.addContact(con);
-
-                Log.d("DbMill",""+con.getName()+" "+con.getPhoneNumber());
-
-                i++;
-                copy_phone = phoneNo;
+                val con = Contacts()
+                con.name = name
+                con.phoneNumber = phoneNo
+                db.addContact(con)
+                Log.d("DbMill", "" + con.name + " " + con.phoneNumber)
+                i++
+                copy_phone = phoneNo
+            } else {
+                Toast.makeText(applicationContext, "You cannot add more than 5 contacts", Toast.LENGTH_SHORT).show()
             }
-            else
-            {
-                Toast.makeText(getApplicationContext(), "You cannot add more than 5 contacts", Toast.LENGTH_SHORT).show();
-            }
-        }
-        else {
-            Toast.makeText(getApplicationContext(), "You have not provided any new number", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(applicationContext, "You have not provided any new number", Toast.LENGTH_SHORT).show()
         }
     }
 
-    public List<Contacts> FetchContacts()
-    {
-        return db.getAllContacts();
+    fun FetchContacts(): FetchContacts? {
+        return db.allContacts
     }
 
-    public void DisplayContacts()
-    {
-        Intent intent = new Intent(this, FetchContacts.class);
-        startActivity(intent);
+    fun DisplayContacts() {
+        val intent = Intent(this, FetchContacts::class.java)
+        startActivity(intent)
     }
 
-    public void DeleteContacts(View v) {
-        EditText del_contact = findViewById(R.id.delete_number);
-        String del_con = del_contact.getText().toString();
-
-        if (FetchContacts() != null)
-        {
-            for (Contacts contacts : FetchContacts()) {
-                if (contacts.getPhoneNumber().equals(del_con)) {
-                    db.deleteContact(contacts.getPhoneNumber());
-                    copy_phone = "";
-                    Log.d("DbMill", ""+contacts.getPhoneNumber());
-                    break;
+    fun DeleteContacts(v: View?) {
+        val del_contact = findViewById<EditText>(R.id.delete_number)
+        val del_con = del_contact.text.toString()
+        if (FetchContacts() != null) {
+            for (contacts in FetchContacts()!!) {
+                if (contacts.getPhoneNumber() == del_con) {
+                    db.deleteContact(contacts.getPhoneNumber())
+                    copy_phone = ""
+                    Log.d("DbMill", "" + contacts.getPhoneNumber())
+                    break
                 } else {
-                    Toast.makeText(getApplicationContext(), "No such contact available", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(applicationContext, "No such contact available", Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
-    {
-        if (requestCode == SEND_SMS_PERMISSION_REQUEST_CODE && requestCode == TRACK_LOCATION_REQUEST_CODE)
-        {
-            if (grantResults.length > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED))
-            {
-                sos_btn.setEnabled(true);
-            }
-            else
-                Toast.makeText(getApplicationContext(), "Permission denied", Toast.LENGTH_LONG).show();
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        if (requestCode == SEND_SMS_PERMISSION_REQUEST_CODE && requestCode == TRACK_LOCATION_REQUEST_CODE) {
+            if (grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                sos_btn!!.isEnabled = true
+            } else Toast.makeText(applicationContext, "Permission denied", Toast.LENGTH_LONG).show()
         }
     }
 
-    private boolean checkPermission()
-    {
-        int checkPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS);
-        return (checkPermission == PackageManager.PERMISSION_GRANTED);
+    private fun checkPermission(): Boolean {
+        val checkPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
+        return checkPermission == PackageManager.PERMISSION_GRANTED
     }
 
-    private boolean checkLocation()
-    {
-        int checkLocation = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
-        return (checkLocation ==PackageManager.PERMISSION_GRANTED);
+    private fun checkLocation(): Boolean {
+        val checkLocation = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+        return checkLocation == PackageManager.PERMISSION_GRANTED
     }
 
-    @Override
-    public void onLocationChanged(Location location)
-    {
-        try
-        {
-            String myLatitude = String.valueOf(location.getLatitude());
-            String myLongitude = String.valueOf(location.getLongitude());
-            
-            GlobalMessage = " https://www.google.com/maps?q="+ myLatitude + "," + myLongitude;
-
-
-        }
-
-        catch (Exception e)
-        {
-            e.printStackTrace();
+    override fun onLocationChanged(location: Location) {
+        try {
+            val myLatitude = location.latitude.toString()
+            val myLongitude = location.longitude.toString()
+            GlobalMessage = " https://www.google.com/maps?q=$myLatitude,$myLongitude"
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {}
-
-    @Override
-    public void onProviderEnabled(String provider) {}
-
-    @Override
-    public void onProviderDisabled(String provider) {}
-
-    private void requestLocPermission() {
+    override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
+    override fun onProviderEnabled(provider: String) {}
+    override fun onProviderDisabled(provider: String) {}
+    private fun requestLocPermission() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)) {
-            new AlertDialog.Builder(this)
+                        Manifest.permission.ACCESS_FINE_LOCATION)) {
+            AlertDialog.Builder(this)
                     .setTitle("Permission needed")
                     .setMessage("This permission is needed because of this and that")
-                    .setPositiveButton("ok", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            ActivityCompat.requestPermissions( Emergency.this,
-                                    new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, TRACK_LOCATION_REQUEST_CODE);
-                        }
-                    })
-                    .setNegativeButton("cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    })
-                    .create().show();
+                    .setPositiveButton("ok") { dialog, which -> ActivityCompat.requestPermissions(this@Emergency, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), TRACK_LOCATION_REQUEST_CODE) }
+                    .setNegativeButton("cancel") { dialog, which -> dialog.dismiss() }
+                    .create().show()
         } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, TRACK_LOCATION_REQUEST_CODE);
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), TRACK_LOCATION_REQUEST_CODE)
         }
     }
 
-    private void requestSmsPermission() {
+    private fun requestSmsPermission() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                Manifest.permission.SEND_SMS)) {
-            new AlertDialog.Builder(this)
+                        Manifest.permission.SEND_SMS)) {
+            AlertDialog.Builder(this)
                     .setTitle("Permission needed")
                     .setMessage("This permission is needed because of this and that")
-                    .setPositiveButton("ok", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            ActivityCompat.requestPermissions( Emergency.this,
-                                    new String[] {Manifest.permission.SEND_SMS}, SEND_SMS_PERMISSION_REQUEST_CODE);
-                        }
-                    })
-                    .setNegativeButton("cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    })
-                    .create().show();
+                    .setPositiveButton("ok") { dialog, which -> ActivityCompat.requestPermissions(this@Emergency, arrayOf(Manifest.permission.SEND_SMS), SEND_SMS_PERMISSION_REQUEST_CODE) }
+                    .setNegativeButton("cancel") { dialog, which -> dialog.dismiss() }
+                    .create().show()
         } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[] {Manifest.permission.SEND_SMS}, SEND_SMS_PERMISSION_REQUEST_CODE);
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.SEND_SMS), SEND_SMS_PERMISSION_REQUEST_CODE)
         }
+    }
+
+    companion object {
+        private const val LOCATION_PERMISSION_REQUEST_CODE = 1
+        const val MULTIPLE_PERMISSIONS = 10 // code you want.
     }
 }

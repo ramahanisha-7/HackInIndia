@@ -1,43 +1,31 @@
-package com.example.crimecurber;
+package com.example.crimecurber
 
-import android.os.Bundle;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import android.os.Bundle
+import android.widget.ArrayAdapter
+import android.widget.ListView
+import androidx.appcompat.app.AppCompatActivity
+import com.example.crimecurber.FetchContacts
+import java.util.*
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import java.util.ArrayList;
-import java.util.List;
-
-public class FetchContacts extends AppCompatActivity {
-
-    DbHandler db = new DbHandler(FetchContacts.this);
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_fetch_contacts);
-
-        ArrayList<String> contacts = new ArrayList<>();
+class FetchContacts : AppCompatActivity() {
+    var db = DbHandler(this@FetchContacts)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_fetch_contacts)
+        val contacts = ArrayList<String>()
 
         // Get all contacts
-        List<Contacts> allContacts = db.getAllContacts();
-        ListView listView = findViewById(R.id.listView);
-
-        for(Contacts contact: allContacts)
-        {
-            contacts.add(contact.getName() + " (" + contact.getPhoneNumber() + ")");
+        val allContacts = db.allContacts
+        val listView = findViewById<ListView>(R.id.listView)
+        for (contact in allContacts!!) {
+            contacts.add(contact.name + " (" + contact.phoneNumber + ")")
         }
-
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, contacts);
-        listView.setAdapter(arrayAdapter);
-
-        getIntent();
+        val arrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, contacts)
+        listView.adapter = arrayAdapter
+        intent
     }
 
-    void setDb(DbHandler db)
-    {
-        this.db = db;
+    fun setDb(db: DbHandler) {
+        this.db = db
     }
 }
-

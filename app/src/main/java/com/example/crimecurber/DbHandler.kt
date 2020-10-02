@@ -1,76 +1,56 @@
-package com.example.crimecurber;
+package com.example.crimecurber
 
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
+import android.content.ContentValues
+import android.content.Context
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
+import java.util.*
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class DbHandler extends SQLiteOpenHelper
-{
-    public DbHandler(Context context)
-    {
-        super(context, Parameters.DB_NAME, null, Parameters.DB_VERSION);
+class DbHandler(context: Context?) : SQLiteOpenHelper(context, Parameters.DB_NAME, null, Parameters.DB_VERSION) {
+    override fun onCreate(db: SQLiteDatabase) {
+        val create = "CREATE TABLE " + Parameters.TABLE_NAME + "(" + Parameters.KEY_ID + " INTEGER PRIMARY KEY," + Parameters.KEY_NAME + " TEXT, " + Parameters.KEY_PHONE + " TEXT" + ")"
+        db.execSQL(create)
     }
 
-    @Override
-    public void onCreate(SQLiteDatabase db)
-    {
-        String create = "CREATE TABLE " + Parameters.TABLE_NAME + "(" + Parameters.KEY_ID + " INTEGER PRIMARY KEY," + Parameters.KEY_NAME + " TEXT, " + Parameters.KEY_PHONE + " TEXT" + ")";
-        db.execSQL(create);
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {}
+    fun addContact(contact: Contacts) {
+        val db = this.writableDatabase
+        val values = ContentValues()
+        values.put(Parameters.KEY_NAME, contact.name)
+        values.put(Parameters.KEY_PHONE, contact.phoneNumber)
+        db.insert(Parameters.TABLE_NAME, null, values)
+        db.close()
     }
 
-    @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
-    {
+    // Generate the query to read from the database
+    val allContacts:
 
-    }
+    //Loop through now
+            List<Contacts>
+        get() {
+            val contactList: MutableList<Contacts> = ArrayList()
+            val db = this.readableDatabase
 
-    public void addContact(Contacts contact){
-        SQLiteDatabase db = this.getWritableDatabase();
+            // Generate the query to read from the database
+            val select = "SELECT * FROM " + Parameters.TABLE_NAME
+            val cursor = db.rawQuery(select, null)
 
-        ContentValues values = new ContentValues();
-        values.put(Parameters.KEY_NAME, contact.getName());
-        values.put(Parameters.KEY_PHONE, contact.getPhoneNumber());
-
-
-        db.insert(Parameters.TABLE_NAME, null, values);
-        db.close();
-    }
-
-    public List<Contacts> getAllContacts(){
-        List<Contacts> contactList = new ArrayList<> ();
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        // Generate the query to read from the database
-        String select = "SELECT * FROM " + Parameters.TABLE_NAME;
-        Cursor cursor = db.rawQuery(select, null);
-
-        //Loop through now
-        if(cursor.moveToFirst())
-        {
-            do
-            {
-                Contacts contact = new Contacts();
-                contact.setName(cursor.getString(1));
-                contact.setPhoneNumber(cursor.getString(2));
-                contactList.add(contact);
+            //Loop through now
+            if (cursor.moveToFirst()) {
+                do {
+                    val contact = Contacts()
+                    contact.name = cursor.getString(1)
+                    contact.phoneNumber = cursor.getString(2)
+                    contactList.add(contact)
+                } while (cursor.moveToNext())
             }
-
-            while(cursor.moveToNext());
+            cursor.close()
+            return contactList
         }
 
-        cursor.close();
-
-        return contactList;
-    }
-
-    public void deleteContact(String phone){
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(Parameters.TABLE_NAME, Parameters.KEY_PHONE +"=?", new String[]{String.valueOf(phone)});
-        db.close();
+    fun deleteContact(phone: String?) {
+        val db = this.writableDatabase
+        db.delete(Parameters.TABLE_NAME, Parameters.KEY_PHONE + "=?", arrayOf(phone.toString()))
+        db.close()
     }
 }

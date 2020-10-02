@@ -1,19 +1,12 @@
-package com.example.crimecurber;
+package com.example.crimecurber
 
-public class uploadinfo {
-    public String videoLocation;
-    public String videourl;
-    public uploadinfo(){}
+class uploadinfo {
+    var videoLocation: String? = null
+    var videourl: String? = null
 
-    public uploadinfo(String name, String url) {
-        this.videoLocation = name;
-        this.videourl = url;
-    }
-
-    public String getVideoLocation() {
-        return videoLocation;
-    }
-    public String getVideourl() {
-        return videourl;
+    constructor() {}
+    constructor(name: String?, url: String?) {
+        videoLocation = name
+        videourl = url
     }
 }
